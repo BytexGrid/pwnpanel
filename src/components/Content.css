@@ -1,0 +1,22 @@
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-header {
+  margin-bottom: 20px;
+}
+
+.content-header input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+} 

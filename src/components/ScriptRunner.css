@@ -1,0 +1,92 @@
+.script-runner {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 100vh;
+  box-sizing: border-box;
+}
+
+.script-runner > div:last-child {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.script-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.script-controls select,
+.script-controls input {
+  flex: 1;
+}
+
+.script-tabs {
+  display: flex;
+}
+
+.script-tabs-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.script-tabs button {
+  background: transparent;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--secondary-text);
+}
+
+.script-tabs button.active {
+  border-bottom-color: var(--accent-color);
+  color: var(--primary-text);
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.zoom-controls button {
+  padding: 2px 8px;
+}
+
+.script-output {
+  background-color: var(--secondary-bg);
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  flex: 1;
+  min-height: 0;
+}
+
+.script-output pre, .markdown-content {
+  padding: 15px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.script-output pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--secondary-text);
+}
+
+.markdown-content img,
+.markdown-content video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+} 
