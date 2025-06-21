@@ -7,9 +7,10 @@ interface ContentProps {
   selectedCategory: string;
   tools: Tool[];
   updateTool: (toolName: string, updates: Partial<Tool>) => void;
+  createNewTab: (title: string, command: string, args: string[], options?: { cwd?: string, password?: string }) => void;
 }
 
-const Content: React.FC<ContentProps> = ({ selectedCategory, tools, updateTool }) => {
+const Content: React.FC<ContentProps> = ({ selectedCategory, tools, updateTool, createNewTab }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredTools = tools
@@ -28,7 +29,7 @@ const Content: React.FC<ContentProps> = ({ selectedCategory, tools, updateTool }
       </div>
       <div className="tool-grid">
         {filteredTools.map(tool => (
-          <ToolCard key={tool.name} tool={tool} updateTool={updateTool} />
+          <ToolCard key={tool.name} tool={tool} updateTool={updateTool} createNewTab={createNewTab} />
         ))}
       </div>
     </div>

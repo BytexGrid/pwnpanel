@@ -29,6 +29,20 @@ export const api = {
   openToolFolder: (toolName: string) => {
     ipcRenderer.send('open-tool-folder', toolName);
   },
+  terminal: {
+    create: (command: string, args: string[], options?: { cwd?: string, password?: string }): Promise<string> => ipcRenderer.invoke('terminal:create', command, args, options),
+    onData: (callback: (event: { sessionId: string, data: string }) => void) => {
+      const listener = (event: Electron.IpcRendererEvent, data: { sessionId: string, data: string }) => callback(data);
+      ipcRenderer.on('terminal:data', listener);
+      return () => ipcRenderer.removeListener('terminal:data', listener);
+    },
+    onExit: (callback: (event: { sessionId: string, code?: number, error?: string }) => void) => {
+      const listener = (event: Electron.IpcRendererEvent, data: { sessionId: string, code?: number, error?: string }) => callback(data);
+      ipcRenderer.on('terminal:exit', listener);
+      return () => ipcRenderer.removeListener('terminal:exit', listener);
+    },
+    kill: (sessionId: string) => ipcRenderer.send('terminal:kill', sessionId),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

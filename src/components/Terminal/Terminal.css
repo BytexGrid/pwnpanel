@@ -1,0 +1,80 @@
+.terminal-container {
+  padding: 0;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.terminal-actions {
+  padding: 5px;
+  background-color: #333;
+}
+
+.terminal-tabs-header {
+  display: flex;
+  background-color: #252526;
+  border-bottom: 1px solid #444;
+}
+
+.tab-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  border-right: 1px solid #444;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab-item.active {
+  background-color: #1e1e1e;
+  color: white;
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.close-tab {
+  background: none;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-tab:hover {
+  color: white;
+}
+
+.terminal-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.terminal-tab {
+  height: 100%;
+}
+
+.terminal-tab pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  height: 100%;
+}
+
+.exit-code {
+  color: #f7b731;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.no-active-session {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+} 

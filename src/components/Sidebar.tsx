@@ -18,6 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setView, view, setSelectedCategory, s
         <h2>Views</h2>
         <button onClick={() => setView('installer')} className={view === 'installer' ? 'active' : ''}>Tool Installer</button>
         <button onClick={() => setView('runner')} className={view === 'runner' ? 'active' : ''}>Script Runner</button>
+        <button onClick={() => setView('terminal')} className={view === 'terminal' ? 'active' : ''}>Terminal</button>
       </div>
       <div className="categories">
         <h2>Categories</h2>

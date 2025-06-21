@@ -7,8 +7,14 @@ import { existsSync } from 'fs';
 import { fork } from 'child_process';
 import { homedir } from 'os';
 import { spawn } from 'child_process';
-import { exec } from 'child_process';
+import { exec, ChildProcess } from 'child_process';
 import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+
+// This is the core of the multi-terminal backend, as suggested by @hejhdiss.
+// It holds references to all active child processes, allowing us to manage them,
+// send data to their specific frontend tabs, and kill them when needed.
+const runningProcesses: Map<string, ChildProcess> = new Map();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -97,6 +103,70 @@ ipcMain.handle('run-command', async (event, command: string, args: string[], cwd
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('terminal:create', (event, command: string, args: string[], options?: { cwd?: string, password?: string }) => {
+  const sessionId = uuidv4();
+  
+  let finalCommand = command;
+  let finalArgs = args;
+
+  // This block implements the password handling from the Python PoC.
+  // If a password is provided, it constructs a command that pipes the password
+  // to `sudo -S`, which tells sudo to read the password from standard input.
+  if (options?.password) {
+    // Escape single quotes in the password to prevent command injection.
+    const sanitizedPassword = options.password.replace(/'/g, "'\\''");
+    
+    // The command to run is `bash -c "the real command"`. We wrap this entire
+    // thing in the `echo | sudo -S` construct.
+    const script = `${command} ${args.join(' ')}`;
+    
+    // We must use `shell: true` for the pipe `|` to be interpreted by a shell.
+    // The final command becomes a single string executed by the system's shell.
+    finalCommand = `echo '${sanitizedPassword}' | sudo -S bash -c "${script.replace(/"/g, '\\"')}"`;
+    finalArgs = []; // args are now part of the command string
+  }
+
+  const child = spawn(finalCommand, finalArgs, {
+    cwd: options?.cwd,
+    shell: true, // `shell: true` is crucial for the pipe `|` to work.
+    stdio: 'pipe' 
+  });
+
+  runningProcesses.set(sessionId, child);
+
+  child.stdout.on('data', (data) => {
+    event.sender.send('terminal:data', { sessionId, data: data.toString() });
+  });
+
+  child.stderr.on('data', (data) => {
+    // We send stderr data on the same 'data' channel, but could prefix it
+    // to be styled differently in the frontend if needed.
+    event.sender.send('terminal:data', { sessionId, data: data.toString() });
+  });
+
+  child.on('exit', (code) => {
+    event.sender.send('terminal:exit', { sessionId, code });
+    runningProcesses.delete(sessionId);
+  });
+  
+  child.on('error', (err) => {
+    event.sender.send('terminal:exit', { sessionId, error: err.message });
+    runningProcesses.delete(sessionId);
+  });
+
+  return sessionId;
+});
+
+ipcMain.on('terminal:kill', (event, sessionId: string) => {
+  const child = runningProcesses.get(sessionId);
+  if (child) {
+    // Use kill() which sends SIGTERM. This is a more graceful way to stop the process
+    // than SIGKILL, allowing it to perform cleanup if it has a handler.
+    child.kill(); 
+    runningProcesses.delete(sessionId);
   }
 });
 

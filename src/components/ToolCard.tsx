@@ -1,37 +1,55 @@
 import React, { useState } from 'react';
 import './ToolCard.css';
 import { Tool } from '../renderer';
+import PasswordDialog from './PasswordDialog';
 
 interface ToolCardProps {
   tool: Tool;
   updateTool: (toolName: string, updates: Partial<Tool>) => void;
+  createNewTab: (title: string, command: string, args: string[], options?: { cwd?: string, password?: string }) => void;
 }
 
-const ToolCard: React.FC<ToolCardProps> = ({ tool, updateTool }) => {
+const ToolCard: React.FC<ToolCardProps> = ({ tool, updateTool, createNewTab }) => {
   const [isInstalling, setIsInstalling] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<string>('');
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
 
-  const handleInstall = async () => {
+  const startInstallation = async (password?: string) => {
     setIsInstalling(true);
     setError(null);
     window.api.logMessage(`[INSTALL_START] Starting installation for ${tool.name}`);
-    const [command, ...args] = tool.installMethod.split(' ');
+    
+    // This logic is now responsible for deciding if a password needs to be sent to the backend.
+    const command = 'bash';
+    const args = ['-c', tool.installMethod];
+    const options = {
+      cwd: 'tools',
+      password: password, // Pass the password if it exists.
+    };
+
     try {
-      const result = await window.api.runCommand(command, args, 'tools');
-      if (result.success) {
-        window.api.logMessage(`[INSTALL_SUCCESS] Successfully installed ${tool.name}`);
-        updateTool(tool.name, { installed: true });
-      } else {
-        window.api.logMessage(`[INSTALL_FAIL] Failed to install ${tool.name}. Error: ${result.error}`);
-        setError(result.error);
-      }
+      await createNewTab(`Install: ${tool.name}`, command, args, options);
     } catch (e) {
-      window.api.logMessage(`[INSTALL_FAIL] An unexpected error occurred during installation of ${tool.name}. Error: ${e.message}`);
+      window.api.logMessage(`[INSTALL_FAIL] An unexpected error occurred: ${e.message}`);
       setError(e.message);
     } finally {
       setIsInstalling(false);
     }
+  };
+
+  const handleInstallClick = () => {
+    // If the command requires sudo, open the password dialog.
+    // Otherwise, start the installation immediately without a password.
+    if (tool.installMethod.includes('sudo')) {
+      setIsPasswordDialogOpen(true);
+    } else {
+      startInstallation();
+    }
+  };
+
+  const handlePasswordSubmit = (password: string) => {
+    setIsPasswordDialogOpen(false);
+    startInstallation(password);
   };
   
   const handleRun = () => {
@@ -49,6 +67,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, updateTool }) => {
   };
 
   return (
+    <>
     <div className="tool-card">
       <h3>{tool.name}</h3>
       <p>Status: {tool.installed ? 'Installed' : 'Not Installed'}</p>
@@ -60,13 +79,20 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, updateTool }) => {
             <button onClick={handleOpenFolder} className="open-folder-button">Open Folder</button>
           </div>
         ) : (
-          <button onClick={handleInstall} className="install" disabled={isInstalling}>
+            <button onClick={handleInstallClick} className="install" disabled={isInstalling}>
             {isInstalling ? 'Installing...' : 'Install'}
           </button>
         )}
       </div>
       {error && <p style={{color: 'red'}}>{error}</p>}
     </div>
+      <PasswordDialog
+        isOpen={isPasswordDialogOpen}
+        onClose={() => setIsPasswordDialogOpen(false)}
+        onSubmit={handlePasswordSubmit}
+        toolName={tool.name}
+      />
+    </>
   );
 };
 
